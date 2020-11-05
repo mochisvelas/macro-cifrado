@@ -24,10 +24,10 @@ locate PROTO :DWORD,:DWORD
 
 .data
         out_main        db "-- Main menu --",0
-        opt1       	    db "1. Cipher a message with main method",0
+        opt1       	db "1. Cipher a message with main method",0
         opt2            db "2. Cipher a message with the variant method",0
-        opt3       	    db "3. Decipher a message",0
-        opt4       	    db "4. Try break cipher",0
+        opt3       	db "3. Decipher a message",0
+        opt4       	db "4. Try break cipher",0
 
         out_option      db "Insert option number:",0
 
