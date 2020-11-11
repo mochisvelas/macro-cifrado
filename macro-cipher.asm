@@ -23,15 +23,24 @@ INCLUDE \masm32\include\kernel32.inc
 locate PROTO :DWORD,:DWORD
 
 .data
-        out_main        db "-- Main menu --",0
-        opt1       	db "1. Cipher a message with main method",0
-        opt2            db "2. Cipher a message with the variant method",0
-        opt3       	db "3. Decipher a message",0
-        opt4       	db "4. Try break cipher",0
+        out_main        db "-- Menu principal --",0
+        opt1       	db "1. Cifrar mensaje con primer metodo",0
+        opt2            db "2. Cifrar mensaje con segundo metodo",0
+        opt3       	db "3. Descifrar mensaje",0
+        opt4       	db "4. Romper cifrado",0
 
-        out_option      db "Insert option number:",0
+        out_option      db "Inserte el numero de opcion",0
+        out_string      db "Ingrese el mensaje:",0
 
         in_option       db 0,0
+
+	   letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
+	   odds   	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+	   in_string 	db 500 dup('$')
+
+	   units 		db 0,0
+	   tens 		db 0,0
 
         new_line        db 0Ah,0
         new_space       db 20h,0
@@ -123,12 +132,94 @@ proc_decipher endp
 ;------------------------------------------------
 ;Procedure to try to break cipher
 proc_break_cipher proc near
+	
+	write_text out_string,new_space
+	invoke StdIn, addr in_string,499
 
+	lea esi, in_string
+
+	l_string:
+		
+		lea edi,odds
+
+		xor ebx,ebx
+		cmp [esi],ebx
+		je ret_odds
+
+		mov bl,[esi]
+		sub bl,60h
+
+		add edi,ebx
+
+		mov eax,[edi]
+		inc eax
+		mov [edi],eax
+
+		inc esi
+
+	jmp l_string
+
+	ret_odds:
 
 	ret
 proc_break_cipher endp
 ;------------------------------------------------
-;Procedure to clear screen found in m32lib
+print_odds proc near
+
+	lea esi,letters
+	lea edi,odds
+
+	l_print:
+
+
+
+
+	jmp l_print
+
+	ret
+print_odds endp
+;------------------------------------------------
+print_num proc near
+
+        ;Reset tens
+        mov tens,00h
+
+        ;If single digit printcont
+        cmp bl,09h
+        jle printcont
+
+
+        ;If is not a single digit sub tens
+        jmp subtens
+
+        ;Count tens in result if any
+        subtens:
+
+        cmp bl,0Ah
+        jl printcont
+
+        sub bl,0Ah
+
+        inc tens
+
+        jmp subtens
+
+        ;Print number
+        printcont:
+
+        ;Print tens
+        write_num tens
+
+        ;Print units
+        mov units,bl
+        write_num units
+
+        ret_print:
+
+        ret
+print_num endp
+;------------------------------------------------
+;Procedure to clear screen found in masm32\m32lib\clearscr.asm
 clear_screen proc
 
     LOCAL hOutPut:DWORD
