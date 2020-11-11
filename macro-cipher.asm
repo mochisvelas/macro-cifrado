@@ -1,10 +1,16 @@
-;Macro to print text
+;Print text
 write_text macro text, white_space
         invoke StdOut, addr text
         invoke StdOut, addr white_space
 endm
 ;------------------------------------------------
-;Macro to read text
+;Print num
+write_num macro num
+	add num,30h
+	invoke StdOut, addr num
+endm
+;------------------------------------------------
+;Read text
 read_text macro text
         invoke StdIn, addr text,10
 endm
@@ -171,10 +177,23 @@ print_odds proc near
 
 	l_print:
 
+	mov bl,[esi]
+	cmp bl,5Ah
+	jg ret_print_odds
 
+	call print_num
 
+	invoke StdOut, addr new_space
+
+	mov bl,[edi]
+	call print_num
+
+	inc esi
+	inc edi
 
 	jmp l_print
+
+	ret_print_odds:
 
 	ret
 print_odds endp
