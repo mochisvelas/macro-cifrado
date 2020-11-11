@@ -35,7 +35,7 @@ locate PROTO :DWORD,:DWORD
         opt3       	db "3. Descifrar mensaje",0
         opt4       	db "4. Romper cifrado",0
 
-        out_option      db "Inserte el numero de opcion",0
+        out_option      db "Inserte el numero de opcion:",0
         out_string      db "Ingrese el mensaje:",0
 
         in_option       db 0,0
