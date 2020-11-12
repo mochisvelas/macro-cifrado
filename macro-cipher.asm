@@ -239,7 +239,7 @@ print_odds proc near
 	div bl
 	mov bl,al
 
-	;Print odd
+	;Print odds
 	call print_num
 
 	;Print % and new_line
