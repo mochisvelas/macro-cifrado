@@ -49,8 +49,8 @@ locate PROTO :DWORD,:DWORD
 
 	   total_str 	db 0,0
 
-	   units 		db 0,0
-	   tens 		db 0,0
+	   units 	db 0,0
+	   tens 	db 0,0
 
         new_line        db 0Ah,0
         new_space       db 20h,0
