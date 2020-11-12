@@ -40,17 +40,17 @@ locate PROTO :DWORD,:DWORD
 
         in_option       db 0,0
 
-	   tmp 		dd 0
+	tmp 		dd 0
 
-	   letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
-	   odds   	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
+	odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-	   in_string 	db 500 dup('$')
+	in_string 	db 500 dup('$')
 
-	   total_str 	db 0,0
+	total_str 	db 0,0
 
-	   units 	db 0,0
-	   tens 	db 0,0
+	units  		db 0,0
+	tens   	 	db 0,0
 
         new_line        db 0Ah,0
         new_space       db 20h,0
@@ -63,7 +63,7 @@ program:
 	;Main program
 	t_main:
 
-	   ;Output main prompt
+	;Output main prompt
         write_text out_main, new_line
         write_text opt1, new_line
         write_text opt2, new_line
