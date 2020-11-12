@@ -208,10 +208,14 @@ print_odds proc near
 	l_print:
 
 	xor ebx,ebx
-	mov bl,[esi]
 
-	cmp bl,00h
+	mov bl,[edi]
+
+	mov cl,00h
+	cmp bl,cl
 	je skip_letter
+
+	mov bl,[esi]
 
 	cmp bl,41h
 	jl ret_print_odds
