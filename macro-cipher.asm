@@ -214,12 +214,19 @@ print_odds proc near
 	div bl
 	mov bl,al
 
+	;Print odd
 	call print_num
+
+	;Print % and new_line
+	mov bl,25h
+	mov edx,edi
+	lea edi,tmp
+	mov [edi],ebx
+	mov edi,edx
+	write_text tmp,new_line
 
 	inc esi
 	inc edi
-
-	invoke StdOut, addr new_line
 
 	jmp l_print
 
