@@ -161,6 +161,12 @@ proc_break_cipher proc near
 		cmp bl,al
 		je ret_odds
 
+		cmp bl,41h
+		jl not_letter
+
+		cmp bl,5Ah
+		jg not_letter
+
 		sub bl,41h
 
 		add edi,ebx
@@ -171,12 +177,24 @@ proc_break_cipher proc near
 		mov bl,[edi]
 
 		inc total_str
+
+		not_letter:
+
 		inc esi
 
 	jmp l_string
 
 	ret_odds:
+	mov bl,total_str
+	cmp bl,00h
+	je empty_str
+
 	call print_odds
+
+	empty_str:
+
+	read_text in_option
+	call clear_screen
 
 	ret
 proc_break_cipher endp
@@ -191,6 +209,9 @@ print_odds proc near
 
 	xor ebx,ebx
 	mov bl,[esi]
+
+	cmp bl,00h
+	je skip_letter
 
 	cmp bl,41h
 	jl ret_print_odds
@@ -225,14 +246,15 @@ print_odds proc near
 	mov edi,edx
 	write_text tmp,new_line
 
+	skip_letter:
+
 	inc esi
 	inc edi
 
 	jmp l_print
 
 	ret_print_odds:
-	read_text in_option
-	call clear_screen
+
 	call reset_odds
 
 	ret
