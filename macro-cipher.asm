@@ -40,10 +40,14 @@ locate PROTO :DWORD,:DWORD
 
         in_option       db 0,0
 
+	   tmp 		dd 0
+
 	   letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
 	   odds   	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 	   in_string 	db 500 dup('$')
+
+	   total_str 	db 0,0
 
 	   units 		db 0,0
 	   tens 		db 0,0
@@ -144,32 +148,40 @@ proc_break_cipher proc near
 
 	lea esi, in_string
 
+	mov total_str,00h
+
 	l_string:
-		
+
 		lea edi,odds
 
 		xor ebx,ebx
-		cmp [esi],ebx
+		xor ax,ax
+		mov bl,[esi]
+
+		cmp bl,al
 		je ret_odds
 
-		mov bl,[esi]
-		sub bl,60h
+		sub bl,41h
 
 		add edi,ebx
 
 		mov eax,[edi]
 		inc eax
 		mov [edi],eax
+		mov bl,[edi]
 
+		inc total_str
 		inc esi
 
 	jmp l_string
 
 	ret_odds:
+	call print_odds
 
 	ret
 proc_break_cipher endp
 ;------------------------------------------------
+;Procedure to print odds of letter ocurrences in in_string
 print_odds proc near
 
 	lea esi,letters
@@ -177,27 +189,75 @@ print_odds proc near
 
 	l_print:
 
+	xor ebx,ebx
 	mov bl,[esi]
-	cmp bl,5Ah
-	jg ret_print_odds
 
-	call print_num
+	cmp bl,41h
+	jl ret_print_odds
+
+	mov edx,edi
+	lea edi,tmp
+	mov [edi],ebx
+	mov edi,edx
+	write_text tmp,new_space
 
 	invoke StdOut, addr new_space
 
+	xor bx,bx
+	xor ax,ax
 	mov bl,[edi]
+
+	mov al,bl
+	mov bl,64h
+	mul bl
+	mov bl,total_str
+	div bl
+	mov bl,al
+
 	call print_num
 
 	inc esi
 	inc edi
 
+	invoke StdOut, addr new_line
+
 	jmp l_print
 
 	ret_print_odds:
+	read_text in_option
+	call clear_screen
+	call reset_odds
 
 	ret
 print_odds endp
 ;------------------------------------------------
+;Procedure to reset odds array
+reset_odds proc near
+	
+	lea edi,odds
+
+	mov cl,00h
+
+	mov bl,00h
+
+	l_reset:
+
+	cmp cl,1Ah
+	jg ret_reset
+
+	mov [edi],bl
+
+	inc cl
+	inc edi
+
+	jmp l_reset
+
+	ret_reset:
+
+	ret
+reset_odds endp
+;------------------------------------------------
+;Procedure to print number
 print_num proc near
 
         ;Reset tens
