@@ -47,7 +47,7 @@ locate PROTO :DWORD,:DWORD
 
 	in_string 	db 500 dup('$')
 
-	total_str 	db 0,0
+	total_string 	db 0,0
 
 	units  		db 0,0
 	tens   	 	db 0,0
@@ -148,7 +148,7 @@ proc_break_cipher proc near
 
 	lea esi, in_string
 
-	mov total_str,00h
+	mov total_string,00h
 
 	l_string:
 
@@ -174,9 +174,8 @@ proc_break_cipher proc near
 		mov eax,[edi]
 		inc eax
 		mov [edi],eax
-		mov bl,[edi]
 
-		inc total_str
+		inc total_string
 
 		not_letter:
 
@@ -185,7 +184,7 @@ proc_break_cipher proc near
 	jmp l_string
 
 	ret_odds:
-	mov bl,total_str
+	mov bl,total_string
 	cmp bl,00h
 	je empty_str
 
@@ -235,7 +234,7 @@ print_odds proc near
 	mov al,bl
 	mov bl,64h
 	mul bl
-	mov bl,total_str
+	mov bl,total_string
 	div bl
 	mov bl,al
 
