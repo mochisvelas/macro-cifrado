@@ -1,9 +1,9 @@
-;Print text
-write_text macro text, white_space
-        invoke StdOut, addr text
-        invoke StdOut, addr white_space
-endm
+;Print text (Lo modifique por que encontre un Bug que cuando introducias varios caracteres en el loob infinito de la opcion imprimia de forma extrañana el menu)
+write_text MACRO text
+        INVOKE StdOut, ADDR text
+ENDM
 ;------------------------------------------------
+;Macro to read text
 ;Print num
 write_num macro num
 	add num,30h
@@ -29,49 +29,73 @@ INCLUDE \masm32\include\kernel32.inc
 locate PROTO :DWORD,:DWORD
 
 .data
-        out_main        db "-- Menu principal --",0
-        opt1       	db "1. Cifrar mensaje con primer metodo",0
-        opt2            db "2. Cifrar mensaje con segundo metodo",0
-        opt3       	db "3. Descifrar mensaje",0
-        opt4       	db "4. Romper cifrado",0
-
-        out_option      db "Inserte el numero de opcion:",0
-        out_string      db "Ingrese el mensaje:",0
-
-        in_option       db 0,0
-
-	tmp 		dd 0
-
-	letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
-	odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-	in_string 	db 500 dup('$')
-
-	total_string 	db 0,0
-
-	units  		db 0,0
-	tens   	 	db 0,0
-
-        new_line        db 0Ah,0
-        new_space       db 20h,0
-
+        out_main			db "-- Menu principal --",0
+        opt1       			db "1. Cifrar mensaje con primer metodo",0
+        opt2				db "2. Cifrar mensaje con segundo metodo",0
+        opt3       			db "3. Descifrar mensaje",0
+        opt4       			db "4. Romper cifrado",0
+        opt5       			DB "5. Salir del programa",0
+        out_option			db "Inserte el numero de opcion:",0
+		;Mensajes cifrado forma 1
+        CifradoMensaje1		DB "El mensaje nop debe exceder dec los 100 caracteres", 0
+        CifradoMensaje2		DB "Ingrese Mensaje: ", 0
+        CifradoMensaje3		DB "La clave no debe de llevar espacios", 0
+        CifradoMensaje4		DB "Ingrese Clave: ", 0
+        CifradoMensaje5		DB "Su clave es: ", 0
+        CifradoMensaje6		DB "Su Mensaje Cifrado es: ", 0
+		;Mensaje (Brenner pon nombre del inciso porfa)
+        out_string			DB "Ingrese el mensaje:",0
+		;Variables
+        in_option			DB 0,0
+		new_space			DB 32d
+		;Variables Cifrado forma 1
+        MensajeEncriptado	DB 100 DUP(?)
+        Mensaje				DB 100 DUP(?)
+        Clave				DB 100 DUP(?)
+		Posicion			DD 0
+		ContadorRecorrido	DB 0
+		ContadorEspacios	DB 0
+		ContadorFila		DB 65,0
+		ContadorColumna		DB 91,0
+		LETRA_AUX			DB 0,0
+		MensajeLength		DB 0
+		ClaveLength			DB 0
+		;Variables (Brenner pon nombre del inciso porfa)
+		tmp 		dd 0
+		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
+		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
+		odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
+		in_string 	db 500 dup('$')
+		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
+		total_str 	db 0,0
+		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
+		units  		db 0,0
+		tens   	 	db 0,0
+.DATA?
+		MatizdeCifrado	dd 676 DUP(?)
 .const
 
 .code
 program:
-
 	;Main program
 	t_main:
-
 	;Output main prompt
-        write_text out_main, new_line
-        write_text opt1, new_line
-        write_text opt2, new_line
-        write_text opt3, new_line
-        write_text opt4, new_line
+        write_text out_main
+		print chr$(10, 13)
+        write_text opt1
+		print chr$(10, 13)
+        write_text opt2
+		print chr$(10, 13)
+        write_text opt3
+		print chr$(10, 13)
+        write_text opt4
+		print chr$(10, 13)
+        write_text opt5
 
-        ;Ask and read main option number
-        write_text out_option, new_space
+    ;Ask and read main option number
+		print chr$(10, 13)
+        write_text out_option
         read_text in_option
 
         xor bx,bx
@@ -122,6 +146,40 @@ program:
 ;Procedure to cipher with main method
 proc_cipher proc near
 
+	write_text CifradoMensaje1
+	print chr$(10, 13)
+	write_text CifradoMensaje2
+	INVOKE	StdIn, ADDR Mensaje, 102
+	print chr$(10, 13)
+
+	write_text CifradoMensaje3
+	print chr$(10, 13)
+	write_text CifradoMensaje4
+	INVOKE	StdIn, ADDR Clave, 102
+	print chr$(10, 13)
+
+	MOV MensajeLength, 0
+	CALL TamanoMensaje	
+	CALL TamanoClave
+
+	MOV AL, ClaveLength
+	CMP AL, MensajeLength
+	JNE RellenarClave
+NoRellenar:
+	
+	CALL Cifrar	
+	write_text CifradoMensaje6
+	write_text MensajeEncriptado
+	print chr$(10, 13)
+
+	JMP TerminarProceso
+	RellenarClave:
+	CALL RellenarClaveConClave	
+	write_text CifradoMensaje5
+	write_text Clave
+	print chr$(10, 13)
+	JMP NoRellenar
+	TerminarProceso:
 
 	ret
 proc_cipher endp
@@ -148,7 +206,7 @@ proc_break_cipher proc near
 
 	lea esi, in_string
 
-	mov total_string,00h
+	mov total_str,00h
 
 	l_string:
 
@@ -174,8 +232,9 @@ proc_break_cipher proc near
 		mov eax,[edi]
 		inc eax
 		mov [edi],eax
+		mov bl,[edi]
 
-		inc total_string
+		inc total_str
 
 		not_letter:
 
@@ -184,7 +243,7 @@ proc_break_cipher proc near
 	jmp l_string
 
 	ret_odds:
-	mov bl,total_string
+	mov bl,total_str
 	cmp bl,00h
 	je empty_str
 
@@ -234,7 +293,7 @@ print_odds proc near
 	mov al,bl
 	mov bl,64h
 	mul bl
-	mov bl,total_string
+	mov bl,total_str
 	div bl
 	mov bl,al
 
@@ -361,6 +420,210 @@ clear_screen proc
 
 clear_screen endp
 ;------------------------------------------------
+
+
+InicializarMatriz PROC NEAR
+	LEA ESI, MatizdeCifrado
+	MOV AL, ContadorFila ;AL se usara como contador para escribir la letra en el Vector
+
+	FOR1:
+		FOR2:
+			MOV [ESI], AL
+            INC ESI
+            INC AL
+
+            CMP ContadorColumna, 5Bh
+            JZ IF_Menor_Z
+            JMP IF_MENOR_LETRA_INICIO
+            IF_Menor_Z:
+				CMP AL, ContadorColumna
+                JNE FOR2
+				SUB ContadorColumna, 25d
+				JMP ENDINGFOR1
+			IF_MENOR_LETRA_INICIO:
+				CMP AL, 5Bh
+				JNE ELSE_MAYOR_Z
+				IF_MAYOR_Z:
+					MOV AL, 65d
+					JMP FOR2
+				ELSE_MAYOR_Z:
+					CMP AL, ContadorColumna
+					JNE FOR2
+					INC ContadorColumna
+	ENDINGFOR1:
+		CMP ContadorFila, 5Ah
+		JZ ENDCICLOS
+
+		INC ContadorFila
+		MOV AL, ContadorFila
+
+        JMP FOR1
+	ENDCICLOS:
+RET
+InicializarMatriz endp
+
+TamanoMensaje PROC NEAR
+	LEA ESI, Mensaje
+	ForRecorrido:
+		MOV AL, [ESI]
+		CMP AL, 32d
+		JE IfIgualEspacio
+		CMP AL, 0
+		JE EndFor
+
+		INC MensajeLength
+		INC ESI
+		JMP ForRecorrido
+
+		IfIgualEspacio:
+			INC ESI
+			JMP ForRecorrido
+
+	EndFor:
+RET
+TamanoMensaje ENDP
+
+TamanoClave PROC NEAR
+	LEA ESI, Clave
+	ForRecorrer:
+		MOV AL, [ESI]
+		CMP AL, 0
+		JE EndFor
+
+		INC ESI
+		INC ClaveLength
+
+		JMP ForRecorrer
+
+	EndFor:
+
+RET
+TamanoClave ENDP
+
+RellenarClaveConClave PROC NEAR
+	LEA ESI, Clave
+	LEA EDI, Clave
+
+ 	MOV BL, 0
+	MOV CL, 0
+	MOV DL, MensajeLength
+	ForRecorrer:
+		MOV AL, [ESI]
+		CMP AL, 0
+		JE EndRecorrer
+
+		INC ESI
+		INC BL
+		JMP ForRecorrer
+	EndRecorrer:
+
+	ForRellenar:
+		CMP CL, ClaveLength
+		JE ReiniciarPuntero
+
+		MOV AL, [EDI]
+		MOV [ESI], AL
+		INC BL
+		INC CL
+
+		INC EDI
+		INC ESI
+
+		CMP BL, DL
+		JL ForRellenar
+		JMP EndRellenar
+
+		ReiniciarPuntero:
+			LEA EDI, Clave
+			MOV CL, 0
+			JMP ForRellenar
+
+	EndRellenar:
+
+RET
+RellenarClaveConClave ENDP
+
+RellenarClaveConMensaje PROC NEAR
+
+RET
+RellenarClaveConMensaje ENDP
+
+Cifrar PROC NEAR
+		MOV ContadorRecorrido, 0
+		MOV ContadorEspacios, 0
+	ForRecorrer:
+		LEA ESI, Mensaje
+		LEA EDI, Clave
+
+		MOV AL, ContadorRecorrido
+		CMP AL, MensajeLength
+		JE Terminar
+
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD ESI, EAX
+		ADD EDI, EAX
+
+		MOV AL, [ESI]
+		MOV BL, [EDI]
+
+		MOV DL, 0
+
+		cmp ContadorEspacios, 0
+		JA Incrementar
+		CMP AL, 32d
+		JNE RestarParaSaltar
+		SumadorEspacios:
+		INC ContadorEspacios
+		Incrementar:
+		INC DL
+		INC ESI
+		MOV AL, [ESI]
+		CMP DL, ContadorEspacios
+		JNE Incrementar
+		CMP AL, 32d
+		JE SumadorEspacios
+
+		RestarParaSaltar:
+		SUB AL, 65d
+		SUB BL, 65d
+
+		JMP CalcularPosicion
+		Continuar:
+		MOV LETRA_AUX, AL
+		LEA ESI, MensajeEncriptado
+		
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD ESI, EAX
+
+		MOV AL, LETRA_AUX
+		MOV [ESI], AL
+
+		INC ContadorRecorrido
+		JMP ForRecorrer
+	EndFor:
+	JMP Terminar
+
+CalcularPosicion:
+	MOV ESI, 0
+	LEA ESI, MatizdeCifrado
+	MOV DL, 26d
+	MUL DL
+	MOV Posicion, EAX
+	MOV EAX, 0
+	MOV AL, BL
+	ADD Posicion, EAX
+	MOV EAX, Posicion
+	ADD ESI, EAX
+
+	MOV AL, [ESI]
+	JMP Continuar
+Terminar:
+RET
+Cifrar ENDP
 
 	t_exit:
 
