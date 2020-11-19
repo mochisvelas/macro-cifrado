@@ -565,12 +565,24 @@ RellenarClaveConClave PROC NEAR
 	MOV DL, MensajeLength
 	ForRecorrer:
 		MOV AL, [ESI]
-		CMP AL, 0
+		MOV LETRA_AUX, AL
+		CMP LETRA_AUX, 0
 		JE EndRecorrer
+
+		CMP LETRA_AUX, 91
+		JA CambiarMinusculas
 
 		INC ESI
 		INC BL
 		JMP ForRecorrer
+		CambiarMinusculas:
+			Cambiar_Minusculas LETRA_AUX
+			MOV AL, LETRA_AUX
+			MOV [ESI], AL
+			
+			INC ESI
+			INC BL
+			JMP ForRecorrer
 	EndRecorrer:
 
 	ForRellenar:
