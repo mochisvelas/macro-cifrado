@@ -36,7 +36,7 @@ locate PROTO :DWORD,:DWORD
         opt4       			db "4. Romper cifrado",0
         opt5       			DB "5. Salir del programa",0
         out_option			db "Inserte el numero de opcion:",0
-		;Mensajes cifrado forma 1
+		;Mensajes cifrado forma 1 y 2
         CifradoMensaje1		DB "El mensaje nop debe exceder dec los 100 caracteres", 0
         CifradoMensaje2		DB "Ingrese Mensaje: ", 0
         CifradoMensaje3		DB "La clave no debe de llevar espacios", 0
@@ -78,6 +78,7 @@ locate PROTO :DWORD,:DWORD
 
 .code
 program:
+	CALL InicializarMatriz
 	;Main program
 	t_main:
 	;Output main prompt
@@ -105,23 +106,25 @@ program:
         call clear_screen
 
         ;Jump to cipher if 1
-        cmp bl,31h
-        je t_cipher
+        CMP bl,31h
+        JE t_cipher
 
         ;Jump to cipher_2 if 2
-        cmp bl,32h
-        je t_cipher_2
+        CMP bl,32h
+        JE t_cipher_2
 
         ;Jump to decipher if 3
-        cmp bl,33h
-        je t_decipher
+        CMP bl,33h
+        JE t_decipher
 
         ;Jump to break_cipher if 4
-        cmp bl,34h
-        je t_break_cipher
+        CMP bl,34h
+        JE t_break_cipher
 	   
-        ;Exit if not an option
-        jmp t_exit
+        ;Exit if 5 option
+        CMP bl,35h
+        JE t_exit
+		JMP t_main	
 
         ;Call cipher and return to main
         t_cipher:
@@ -186,6 +189,40 @@ proc_cipher endp
 ;------------------------------------------------
 ;Procedure to cipher with variant method
 proc_cipher_2 proc near
+	write_text CifradoMensaje1
+	print chr$(10, 13)
+	write_text CifradoMensaje2
+	INVOKE	StdIn, ADDR Mensaje, 102
+	print chr$(10, 13)
+
+	write_text CifradoMensaje3
+	print chr$(10, 13)
+	write_text CifradoMensaje4
+	INVOKE	StdIn, ADDR Clave, 102
+	print chr$(10, 13)
+
+	MOV MensajeLength, 0
+	CALL TamanoMensaje	
+	CALL TamanoClave
+
+	MOV AL, ClaveLength
+	CMP AL, MensajeLength
+	JNE RellenarClave
+NoRellenar:
+	
+	CALL Cifrar	
+	write_text CifradoMensaje6
+	write_text MensajeEncriptado
+	print chr$(10, 13)
+
+	JMP TerminarProceso
+	RellenarClave:
+	CALL RellenarClaveConMensaje		
+	write_text CifradoMensaje5
+	write_text Clave
+	print chr$(10, 13)
+	JMP NoRellenar
+	TerminarProceso:
 
 
 	ret
@@ -544,7 +581,45 @@ RET
 RellenarClaveConClave ENDP
 
 RellenarClaveConMensaje PROC NEAR
+	LEA ESI, Clave
+	LEA EDI, Mensaje
 
+ 	MOV BL, 0
+	MOV CL, 0
+	MOV DL, MensajeLength
+	ForRecorrer:
+		MOV AL, [ESI]
+		CMP AL, 0
+		JE EndRecorrer
+
+		INC ESI
+		INC BL
+		JMP ForRecorrer
+	EndRecorrer:
+	
+
+	ForRellenar:
+		MOV AL, [EDI]
+		CMP AL, 32d
+		JE SaltarEspacio
+
+
+		MOV [ESI], AL
+		INC BL
+		INC CL
+
+		INC EDI
+		INC ESI
+
+		CMP BL, DL
+		JL ForRellenar
+		JMP EndRellenar
+
+		SaltarEspacio:
+			INC EDI
+			JMP ForRellenar
+
+	EndRellenar:
 RET
 RellenarClaveConMensaje ENDP
 
