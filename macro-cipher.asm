@@ -32,9 +32,10 @@ locate PROTO :DWORD,:DWORD
         out_main			db "-- Menu principal --",0
         opt1       			db "1. Cifrar mensaje con primer metodo",0
         opt2				db "2. Cifrar mensaje con segundo metodo",0
-        opt3       			db "3. Descifrar mensaje",0
-        opt4       			db "4. Romper cifrado",0
-        opt5       			DB "5. Salir del programa",0
+        opt3       			db "3. Descifrar mensaje con el metodo principal",0
+        opt4       			db "4. Descifrar mensaje con el segundo metodo",0
+        opt5       			db "5. Romper cifrado",0
+        opt6       			DB "6. Salir del programa",0
         out_option			db "Inserte el numero de opcion:",0
 		;Mensajes cifrado forma 1 y 2
         CifradoMensaje1		DB "El mensaje nop debe exceder dec los 100 caracteres", 0
@@ -93,6 +94,8 @@ program:
         write_text opt4
 		print chr$(10, 13)
         write_text opt5
+		print chr$(10, 13)
+        write_text opt6
 
     ;Ask and read main option number
 		print chr$(10, 13)
@@ -115,14 +118,18 @@ program:
 
         ;Jump to decipher if 3
         CMP bl,33h
-        JE t_decipher
+        JE t_decipher1
 
-        ;Jump to break_cipher if 4
+        ;Jump to decipher if 4
         CMP bl,34h
+        JE t_decipher2
+
+        ;Jump to break_cipher if 5
+        CMP bl,35h
         JE t_break_cipher
 	   
-        ;Exit if 5 option
-        CMP bl,35h
+        ;Exit if 6 option
+        CMP bl,36h
         JE t_exit
 		JMP t_main	
 
@@ -137,8 +144,13 @@ program:
         jmp t_main
 
         ;Call decipher and return to main
-        t_decipher:
-        call proc_decipher
+        t_decipher1:
+        call proc_decipher1
+        jmp t_main
+
+        ;Call decipher 2 and return to main
+        t_decipher2:
+        call proc_decipher2
         jmp t_main
 
         ;Call decipher and return to main
@@ -228,12 +240,19 @@ NoRellenar:
 	ret
 proc_cipher_2 endp
 ;------------------------------------------------
-;Procedure to decipher
-proc_decipher proc near
+;Procedure to decipher method 1
+proc_decipher1 proc near
 
 
 	ret
-proc_decipher endp
+proc_decipher1 endp
+;------------------------------------------------
+;Procedure to decipher method 2
+proc_decipher2 proc near
+
+
+	ret
+proc_decipher2 endp
 ;------------------------------------------------
 ;Procedure to try to break cipher
 proc_break_cipher proc near
@@ -700,6 +719,12 @@ Terminar:
 RET
 Cifrar ENDP
 
+
+DesifrarConClaveCompleta PROC NEAR
+	;en proceso
+RET
+DesifrarConClaveCompleta ENDP
+	
 	t_exit:
 
 	;Exit program
