@@ -52,7 +52,6 @@ locate PROTO :DWORD,:DWORD
         out_string			DB "Ingrese el mensaje:",0
 		;Variables
         in_option			DB 0,0
-		new_space			DB 32d
 		;Variables Cifrado forma 1
         MensajeEncriptado	DB 100 DUP(?)
         Mensaje				DB 100 DUP(?)
@@ -77,6 +76,8 @@ locate PROTO :DWORD,:DWORD
 		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		units  		db 0,0
 		tens   	 	db 0,0
+		new_space		DB 20h,0
+		new_line 		DB 0Ah,0
 .DATA?
 		MatizdeCifrado	dd 676 DUP(?)
 .const
@@ -342,7 +343,7 @@ print_odds proc near
 	lea edi,tmp
 	mov [edi],ebx
 	mov edi,edx
-	write_text tmp,new_space
+	write_text tmp
 
 	invoke StdOut, addr new_space
 
@@ -366,7 +367,8 @@ print_odds proc near
 	lea edi,tmp
 	mov [edi],ebx
 	mov edi,edx
-	write_text tmp,new_line
+	write_text tmp
+	invoke StdOut, addr new_line
 
 	skip_letter:
 
