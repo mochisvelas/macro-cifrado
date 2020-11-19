@@ -3,17 +3,21 @@ write_text MACRO text
         INVOKE StdOut, ADDR text
 ENDM
 ;------------------------------------------------
-;Macro to read text
 ;Print num
-write_num macro num
+write_num MACRO num
 	add num,30h
-	invoke StdOut, addr num
-endm
+	INVOKE StdOut, ADDR num
+ENDM
 ;------------------------------------------------
 ;Read text
-read_text macro text
-        invoke StdIn, addr text,10
-endm
+read_text MACRO text
+        INVOKE StdIn, ADDR text,10
+ENDM
+;------------------------------------------------
+;Chance letters to capital letters
+Cambiar_Minusculas MACRO Letter
+	SUB Letter, 32d
+ENDM
 ;------------------------------------------------
 .386
 .model flat,stdcall
@@ -620,20 +624,35 @@ RellenarClaveConMensaje PROC NEAR
 	MOV DL, MensajeLength
 	ForRecorrer:
 		MOV AL, [ESI]
-		CMP AL, 0
+		MOV LETRA_AUX, AL
+		CMP LETRA_AUX, 0
 		JE EndRecorrer
+
+		CMP LETRA_AUX, 91
+		JA CambiarMinusculas
 
 		INC ESI
 		INC BL
 		JMP ForRecorrer
+		CambiarMinusculas:
+			Cambiar_Minusculas LETRA_AUX
+			MOV AL, LETRA_AUX
+			MOV [ESI], AL
+			
+			INC ESI
+			INC BL
+			JMP ForRecorrer
 	EndRecorrer:
 	
-
 	ForRellenar:
 		MOV AL, [EDI]
+		MOV LETRA_AUX, AL
 		CMP AL, 32d
 		JE SaltarEspacio
 
+		CMP AL, 91
+		JA CambiarMinusculas2
+		Continuar:
 
 		MOV [ESI], AL
 		INC BL
@@ -650,6 +669,10 @@ RellenarClaveConMensaje PROC NEAR
 			INC EDI
 			JMP ForRellenar
 
+		CambiarMinusculas2:
+			Cambiar_Minusculas LETRA_AUX
+			MOV AL, LETRA_AUX
+			JMP Continuar
 	EndRellenar:
 RET
 RellenarClaveConMensaje ENDP
@@ -680,20 +703,25 @@ Cifrar PROC NEAR
 		JA Incrementar
 		CMP AL, 32d
 		JNE RestarParaSaltar
+
 		SumadorEspacios:
-		INC ContadorEspacios
+			INC ContadorEspacios
+
 		Incrementar:
-		INC DL
-		INC ESI
-		MOV AL, [ESI]
-		CMP DL, ContadorEspacios
-		JNE Incrementar
-		CMP AL, 32d
-		JE SumadorEspacios
+			INC DL
+			INC ESI
+			MOV AL, [ESI]
+			CMP DL, ContadorEspacios
+			JNE Incrementar
+			CMP AL, 32d
+			JE SumadorEspacios
 
 		RestarParaSaltar:
-		SUB AL, 65d
-		SUB BL, 65d
+			CMP AL, 91
+			JA CambiarMinusculas
+		Cambiada:
+			SUB AL, 65d
+			SUB BL, 65d
 
 		JMP CalcularPosicion
 		Continuar:
@@ -712,6 +740,11 @@ Cifrar PROC NEAR
 		JMP ForRecorrer
 	EndFor:
 	JMP Terminar
+CambiarMinusculas:	
+	MOV LETRA_AUX, AL
+	Cambiar_Minusculas LETRA_AUX
+	MOV AL, LETRA_AUX
+	JMP Cambiada
 
 CalcularPosicion:
 	MOV ESI, 0
