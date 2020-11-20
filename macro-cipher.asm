@@ -1,4 +1,3 @@
-;Print text (Lo modifique por que encontre un Bug que cuando introducias varios caracteres en el loob infinito de la opcion imprimia de forma extrañana el menu)
 write_text MACRO text
         INVOKE StdOut, ADDR text
 ENDM
@@ -72,13 +71,15 @@ locate PROTO :DWORD,:DWORD
 		MensajeLength		DB 0
 		ClaveLength			DB 0
 		;Variables Tratar de romper cifrado
-		tmp 		dd 0
-		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
-		odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-		in_string 	db 500 dup('$')
-		total_str 	db 0,0
-		units  		db 0,0
-		tens   	 	db 0,0
+		tmp 		DD 0
+		letters 	DB 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
+		odds    	DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		in_string 	DB 500 dup('$')
+		total_str 	DB 0,0
+		units  		DB 0,0
+		tens   	 	DB 0,0
+		hundreds 		DB 0,0
+		remainder 	DB 0,0
 		;Variables para nueva line y espacio
 		new_space		DB 20h,0
 		new_line 		DB 0Ah,0
@@ -556,8 +557,27 @@ print_odds proc near
 	mov bl,total_str
 	div bl
 	mov bl,al
+	mov remainder,ah
 
 	;Print odds
+	call print_num
+
+	;Print .
+	mov bl,2Eh
+	mov edx,edi
+	lea edi,tmp
+	mov [edi],ebx
+	mov edi,edx
+	write_text tmp
+
+	xor ax,ax
+	xor bx,bx
+	mov al,remainder
+	mov bl,0Ah
+	mul bl
+	mov bx,ax
+
+	;Print remainder
 	call print_num
 
 	;Print % and new_line
@@ -612,24 +632,33 @@ reset_odds endp
 ;Procedure to print number
 print_num proc near
 
-        ;Reset tens
+        ;Reset conts
         mov tens,00h
+	   mov hundreds,00h
 
         ;If single digit printcont
-        cmp bl,09h
+        cmp bx,09h
         jle printcont
 
+	   ;Count hundreds
+	   subhundreds:
 
-        ;If is not a single digit sub tens
-        jmp subtens
+        cmp bx,64h
+        jl subtens
 
-        ;Count tens in result if any
+        sub bx,64h
+
+        inc hundreds
+
+	   jmp subhundreds
+
+        ;Count tens
         subtens:
 
-        cmp bl,0Ah
+        cmp bx,0Ah
         jl printcont
 
-        sub bl,0Ah
+        sub bx,0Ah
 
         inc tens
 
@@ -638,11 +667,33 @@ print_num proc near
         ;Print number
         printcont:
 
+	   xor ax,ax
+	   
+	   cmp hundreds,al
+	   je skip_hundreds
+
+        ;Print hundreds
+        write_num hundreds
+
+	   skip_hundreds:
+
+	   xor ax,ax
+
+	   cmp tens,al
+	   je skip_tens
+
         ;Print tens
         write_num tens
 
+	   skip_tens:
+	   
         ;Print units
         mov units,bl
+
+	   xor ax,ax
+	   cmp units,al
+	   je ret_print
+
         write_num units
 
         ret_print:
