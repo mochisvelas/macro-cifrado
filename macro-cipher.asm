@@ -56,6 +56,7 @@ locate PROTO :DWORD,:DWORD
         DesifradoMensaje6		DB "Su Mensaje Desifrado es: ", 0
 		;Mensaje Intentar romper cifrado
         out_string			DB "Ingrese el mensaje:",0
+	   possible_message 	DB "El posible mensaje es:",0
 		;Variables
         in_option			DB 0,0
 		;Variables Cifrado forma 1
@@ -619,6 +620,10 @@ print_odds endp
 ;------------------------------------------------
 ;Procedure to match letters according to their odds
 match_letter proc near
+
+	invoke StdOut, addr new_line
+	write_text possible_message
+	invoke StdOut, addr new_space
 
 	lea esi,in_string
 	mov cursor,esi
