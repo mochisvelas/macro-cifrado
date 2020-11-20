@@ -48,6 +48,13 @@ locate PROTO :DWORD,:DWORD
         CifradoMensaje4		DB "Ingrese Clave: ", 0
         CifradoMensaje5		DB "Su clave es: ", 0
         CifradoMensaje6		DB "Su Mensaje Cifrado es: ", 0
+		;Mensajes desifrado 1
+        DesifradoMensaje1		DB "El mensaje nop debe exceder dec los 100 caracteres ymmword nop debe tener espacios ni caracteres diferentes aaa letras", 0
+        DesifradoMensaje2		DB "Ingrese Mensaje Cifrado: ", 0
+        DesifradoMensaje3		DB "La clave no debe de llevar espacios", 0
+        DesifradoMensaje4		DB "Ingrese Clave: ", 0
+        DesifradoMensaje5		DB "Su clave es: ", 0
+        DesifradoMensaje6		DB "Su Mensaje Desifrado es: ", 0
 		;Mensaje (Brenner pon nombre del inciso porfa)
         out_string			DB "Ingrese el mensaje:",0
 		;Variables
@@ -164,6 +171,38 @@ program:
 ;------------------------------------------------
 ;Procedure to cipher with main method
 proc_cipher proc near
+	LEA ESI, Mensaje
+	LEA EDI, Clave
+
+	MOV BL, 0
+	LOOPVACIO1:
+		CMP BL, 100
+		JE LOOPVACIOEND1
+		
+		MOV AL, 0
+		MOV [ESI], AL
+		MOV [EDI], AL
+
+		INC BL
+		INC ESI
+		INC EDI
+		JMP LOOPVACIO1
+	LOOPVACIOEND1:
+	
+	LEA ESI, MensajeEncriptado
+	
+	MOV BL, 0
+	LOOPVACIO2:
+		CMP BL, 100
+		JE LOOPVACIOEND2
+		
+		MOV AL, 0
+		MOV [ESI], AL
+
+		INC BL
+		INC ESI
+		JMP LOOPVACIO2
+	LOOPVACIOEND2:
 
 	write_text CifradoMensaje1
 	print chr$(10, 13)
@@ -178,6 +217,7 @@ proc_cipher proc near
 	print chr$(10, 13)
 
 	MOV MensajeLength, 0
+	MOV ClaveLength, 0
 	CALL TamanoMensaje	
 	CALL TamanoClave
 
@@ -193,11 +233,11 @@ NoRellenar:
 
 	JMP TerminarProceso
 	RellenarClave:
-	CALL RellenarClaveConClave	
-	write_text CifradoMensaje5
-	write_text Clave
-	print chr$(10, 13)
-	JMP NoRellenar
+		CALL RellenarClaveConClave	
+		write_text CifradoMensaje5
+		write_text Clave
+		print chr$(10, 13)
+		JMP NoRellenar
 	TerminarProceso:
 
 	ret
@@ -205,6 +245,39 @@ proc_cipher endp
 ;------------------------------------------------
 ;Procedure to cipher with variant method
 proc_cipher_2 proc near
+	LEA ESI, Mensaje
+	LEA EDI, Clave
+
+	MOV BL, 0
+	LOOPVACIO1:
+		CMP BL, 100
+		JE LOOPVACIOEND1
+		
+		MOV AL, 0
+		MOV [ESI], AL
+		MOV [EDI], AL
+
+		INC BL
+		INC ESI
+		INC EDI
+		JMP LOOPVACIO1
+	LOOPVACIOEND1:
+	
+	LEA ESI, MensajeEncriptado
+	
+	MOV BL, 0
+	LOOPVACIO2:
+		CMP BL, 100
+		JE LOOPVACIOEND2
+		
+		MOV AL, 0
+		MOV [ESI], AL
+
+		INC BL
+		INC ESI
+		JMP LOOPVACIO2
+	LOOPVACIOEND2:
+
 	write_text CifradoMensaje1
 	print chr$(10, 13)
 	write_text CifradoMensaje2
@@ -218,6 +291,7 @@ proc_cipher_2 proc near
 	print chr$(10, 13)
 
 	MOV MensajeLength, 0
+	MOV ClaveLength, 0
 	CALL TamanoMensaje	
 	CALL TamanoClave
 
@@ -246,15 +320,140 @@ proc_cipher_2 endp
 ;------------------------------------------------
 ;Procedure to decipher method 1
 proc_decipher1 proc near
+	LEA ESI, Mensaje
+	LEA EDI, Clave
 
+	MOV BL, 0
+	LOOPVACIO1:
+		CMP BL, 100
+		JE LOOPVACIOEND1
+		
+		MOV AL, 0
+		MOV [ESI], AL
+		MOV [EDI], AL
+
+		INC BL
+		INC ESI
+		INC EDI
+		JMP LOOPVACIO1
+	LOOPVACIOEND1:
+	
+	LEA ESI, MensajeEncriptado
+	
+	MOV BL, 0
+	LOOPVACIO2:
+		CMP BL, 100
+		JE LOOPVACIOEND2
+		
+		MOV AL, 0
+		MOV [ESI], AL
+
+		INC BL
+		INC ESI
+		JMP LOOPVACIO2
+	LOOPVACIOEND2:
+
+	write_text DesifradoMensaje1
+	print chr$(10, 13)
+	write_text DesifradoMensaje2
+	INVOKE	StdIn, ADDR MensajeEncriptado, 102
+	print chr$(10, 13)
+
+	write_text DesifradoMensaje3
+	print chr$(10, 13)
+	write_text DesifradoMensaje4
+	INVOKE	StdIn, ADDR Clave, 102
+	print chr$(10, 13)
+
+	MOV MensajeLength, 0
+	MOV ClaveLength, 0
+	CALL TamanoCifrado	
+	CALL TamanoClave
+	
+
+	MOV AL, ClaveLength
+	CMP AL, MensajeLength
+	JNE RellenarClave
+NoRellenar:
+	
+	CALL DesifrarConClaveCompleta	
+	write_text DesifradoMensaje6
+	write_text MensajeEncriptado
+	print chr$(10, 13)
+
+	JMP TerminarProceso
+	RellenarClave:
+		CALL RellenarClaveConClave	
+		write_text DesifradoMensaje5
+		write_text Clave
+		print chr$(10, 13)
+		JMP NoRellenar
+	TerminarProceso:
 
 	ret
 proc_decipher1 endp
 ;------------------------------------------------
 ;Procedure to decipher method 2
 proc_decipher2 proc near
+	LEA ESI, Mensaje
+	LEA EDI, Clave
 
+	MOV BL, 0
+	LOOPVACIO1:
+		CMP BL, 100
+		JE LOOPVACIOEND1
+		
+		MOV AL, 0
+		MOV [ESI], AL
+		MOV [EDI], AL
 
+		INC BL
+		INC ESI
+		INC EDI
+		JMP LOOPVACIO1
+	LOOPVACIOEND1:
+	
+	LEA ESI, MensajeEncriptado
+	
+	MOV BL, 0
+	LOOPVACIO2:
+		CMP BL, 100
+		JE LOOPVACIOEND2
+		
+		MOV AL, 0
+		MOV [ESI], AL
+
+		INC BL
+		INC ESI
+		JMP LOOPVACIO2
+	LOOPVACIOEND2:
+
+	write_text DesifradoMensaje1
+	print chr$(10, 13)
+	write_text DesifradoMensaje2
+	INVOKE	StdIn, ADDR MensajeEncriptado, 102
+	print chr$(10, 13)
+
+	write_text DesifradoMensaje3
+	print chr$(10, 13)
+	write_text DesifradoMensaje4
+	INVOKE	StdIn, ADDR Clave, 102
+	print chr$(10, 13)
+
+	MOV MensajeLength, 0
+	MOV ClaveLength, 0
+	CALL TamanoCifrado	
+	CALL TamanoClave
+	
+	CALL DesifrarConClaveParcial	
+
+	write_text DesifradoMensaje5
+	write_text Clave
+	print chr$(10, 13)
+
+	write_text DesifradoMensaje6
+	write_text MensajeEncriptado
+	print chr$(10, 13)
 	ret
 proc_decipher2 endp
 ;------------------------------------------------
@@ -526,10 +725,10 @@ TamanoMensaje PROC NEAR
 	LEA ESI, Mensaje
 	ForRecorrido:
 		MOV AL, [ESI]
-		CMP AL, 32d
-		JE IfIgualEspacio
 		CMP AL, 0
 		JE EndFor
+		CMP AL, 65d
+		JL IfIgualEspacio
 
 		INC MensajeLength
 		INC ESI
@@ -542,7 +741,6 @@ TamanoMensaje PROC NEAR
 	EndFor:
 RET
 TamanoMensaje ENDP
-
 TamanoClave PROC NEAR
 	LEA ESI, Clave
 	ForRecorrer:
@@ -559,6 +757,26 @@ TamanoClave PROC NEAR
 
 RET
 TamanoClave ENDP
+TamanoCifrado PROC NEAR
+	LEA ESI, MensajeEncriptado
+	ForRecorrido:
+		MOV AL, [ESI]
+		CMP AL, 0
+		JE EndFor
+		CMP AL, 65d
+		JL IfIgualEspacio
+
+		INC MensajeLength
+		INC ESI
+		JMP ForRecorrido
+
+		IfIgualEspacio:
+			INC ESI
+			JMP ForRecorrido
+
+	EndFor:
+RET
+TamanoCifrado ENDP
 
 RellenarClaveConClave PROC NEAR
 	LEA ESI, Clave
@@ -766,10 +984,159 @@ Cifrar ENDP
 
 
 DesifrarConClaveCompleta PROC NEAR
-	;en proceso
+	MOV ContadorRecorrido, 0
+	For1:
+		MOV DL, ContadorRecorrido
+		CMP DL, MensajeLength
+		JE ForEnd1
+
+		LEA ESI, MensajeEncriptado
+		LEA EDI, Clave
+	
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD ESI, EAX
+		ADD EDI, EAX
+
+		MOV AL, [ESI]
+		MOV BL, [EDI]
+
+		CMP AL, BL
+		JL RestarBL
+		CMP AL, BL
+		JA RestarAL
+		CMP AL, BL
+		JE RestarAL
+	Continuar:
+		LEA EDI, Mensaje
+	
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD EDI, EAX
+
+		MOV AL, LETRA_AUX
+		MOV [ESI], AL
+
+		INC ContadorRecorrido
+		JMP For1
+
+		RestarBL:
+			MOV CL, 91
+			SUB CL, BL
+			SUB AL, 65
+			ADD AL, CL
+			ADD AL, 65
+			MOV LETRA_AUX, AL
+			JMP Continuar
+
+		RestarAL:
+			SUB AL, BL
+			ADD AL, 65
+			MOV LETRA_AUX, AL
+			JMP Continuar
+	ForEnd1:
 RET
 DesifrarConClaveCompleta ENDP
+
+
+DesifrarConClaveParcial PROC NEAR
+	MOV ContadorRecorrido, 0
+	For1:
+		MOV DL, ContadorRecorrido
+		CMP DL, MensajeLength
+		JE ForEnd1
+
+		LEA ESI, MensajeEncriptado
+		LEA EDI, Clave
 	
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD ESI, EAX
+		ADD EDI, EAX
+
+		MOV AL, [ESI]
+		MOV BL, [EDI]
+		
+		CMP AL, 91
+		JA CambiarMinusculasAL
+	RevisarMinusculas:
+		
+		CMP BL, 91
+		JA CambiarMinusculasBL
+	LetrasCambiadas:
+
+		MOV [ESI], AL
+		MOV [EDI], BL
+
+		CMP AL, BL
+		JL RestarBL
+		CMP AL, BL
+		JA RestarAL
+		CMP AL, BL
+		JE RestarAL
+	Continuar:
+		LEA EDI, Mensaje
+	
+		MOV EAX, 0
+		MOV AL, ContadorRecorrido
+
+		ADD EDI, EAX
+
+		MOV AL, LETRA_AUX
+		MOV [ESI], AL
+
+		INC ContadorRecorrido
+		MOV AL, ClaveLength
+		CMP AL, MensajeLength
+		JL Rellenar
+
+		JMP For1
+
+		RestarBL:
+			MOV CL, 91
+			SUB CL, BL
+			SUB AL, 65
+			ADD AL, CL
+			ADD AL, 65
+			MOV LETRA_AUX, AL
+			JMP Continuar
+
+		RestarAL:
+			SUB AL, BL
+			ADD AL, 65
+			MOV LETRA_AUX, AL
+			JMP Continuar
+
+		Rellenar:
+			LEA EDI, Clave
+			MOV EAX, 0
+			MOV AL, ClaveLength
+
+			ADD EDI, EAX
+
+			MOV BL, LETRA_AUX
+			MOV [EDI], BL
+
+			INC ClaveLength
+			JMP For1
+
+		CambiarMinusculasAL:
+			MOV LETRA_AUX, AL
+			Cambiar_Minusculas LETRA_AUX
+			MOV AL, LETRA_AUX
+			JMP RevisarMinusculas
+			
+		CambiarMinusculasBL:
+			MOV LETRA_AUX, BL
+			Cambiar_Minusculas LETRA_AUX
+			MOV BL, LETRA_AUX
+			JMP RevisarMinusculas
+	ForEnd1:
+RET
+DesifrarConClaveParcial ENDP
 	t_exit:
 
 	;Exit program
