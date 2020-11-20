@@ -74,12 +74,15 @@ locate PROTO :DWORD,:DWORD
 		tmp 		DD 0
 		letters 	DB 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
 		odds    	DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		percent   DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 		in_string 	DB 500 dup('$')
 		total_str 	DB 0,0
 		units  		DB 0,0
 		tens   	 	DB 0,0
 		hundreds 		DB 0,0
 		remainder 	DB 0,0
+		whole 		DB 0,0
+		cursor 		DD 0,0
 		;Variables para nueva line y espacio
 		new_space		DB 20h,0
 		new_line 		DB 0Ah,0
@@ -521,6 +524,8 @@ proc_break_cipher endp
 ;Procedure to print odds of letter ocurrences in in_string
 print_odds proc near
 
+	lea esi, percent
+	mov cursor,esi
 	lea esi,letters
 	lea edi,odds
 
@@ -557,6 +562,7 @@ print_odds proc near
 	mov bl,total_str
 	div bl
 	mov bl,al
+	mov whole,al
 	mov remainder,ah
 
 	;Print odds
@@ -570,12 +576,8 @@ print_odds proc near
 	mov edi,edx
 	write_text tmp
 
-	xor ax,ax
 	xor bx,bx
-	mov al,remainder
-	mov bl,0Ah
-	mul bl
-	mov bx,ax
+	mov bl,remainder
 
 	;Print remainder
 	call print_num
@@ -591,17 +593,282 @@ print_odds proc near
 
 	skip_letter:
 
+	mov bl,whole
+	mov [edi],bl
+
+	mov edx,esi
+	mov esi,cursor
+	mov bl,remainder
+	mov [esi],bl
+	mov esi,edx
+
 	inc esi
 	inc edi
+	inc cursor
 
 	jmp l_print
 
 	ret_print_odds:
 
+	call match_letter
+
 	call reset_odds
 
 	ret
 print_odds endp
+;------------------------------------------------
+;Procedure to match letters according to their odds
+match_letter proc near
+
+	lea esi,in_string
+	mov cursor,esi
+
+	l_match_letter:
+
+	lea esi,odds
+	lea edi,percent
+
+	xor ebx,ebx
+	mov al,00h
+	mov edx,esi
+	mov esi,cursor
+	mov bl,[esi]
+	mov esi,edx
+
+	cmp bl,al
+	je finalize_match
+
+	sub bl,41h
+	add esi,ebx
+	add edi,ebx
+
+	mov bl,[esi]
+	mov whole,bl
+
+	mov bl,[edi]
+	mov remainder,bl
+
+	cmp whole,01h
+	jl add_jfzk
+	
+	je add_ybhvg
+
+	cmp whole,02h
+	je add_mpq
+
+	cmp whole,03h
+	je add_tc
+
+	cmp whole,04h
+	je add_u
+
+	cmp whole,05h
+	je add_ild
+
+	cmp whole,06h
+	je add_nr
+
+	cmp whole,08h
+	jle add_s
+
+	cmp whole,0Bh
+	jle add_o
+	
+	cmp whole,0Dh
+	jle add_a
+
+	cmp whole,0Eh
+	je add_e
+	jg add_unknown
+
+	;JFZK
+	add_jfzk:
+
+	cmp remainder,01h
+	jl add_k
+	
+	cmp remainder,04h
+	jl add_z
+
+	cmp remainder,05h
+	jl add_f
+
+	;J
+	mov bl,4Ah
+	jmp ret_match
+
+	;K
+	add_k:
+	mov bl,4Bh
+	jmp ret_match
+
+	;Z
+	add_z:
+	mov bl,5Ah
+	jmp ret_match
+
+	;F
+	add_f:
+	mov bl,46h
+	jmp ret_match
+
+	;YBHVG
+	add_ybhvg:
+
+	cmp remainder,01h
+	jl add_g
+
+	je add_v
+
+	cmp remainder,02h
+	je add_h
+
+	cmp remainder,05h
+	jl add_y
+
+	;B
+	mov bl,42h
+	jmp ret_match
+
+	;G
+	add_g:
+	mov bl,47h
+	jmp ret_match
+
+	;V
+	add_v:
+	mov bl,56h
+	jmp ret_match
+
+	;H
+	add_h:
+	mov bl,48h
+	jmp ret_match
+
+	;Y
+	add_y:
+	mov bl,59h
+	jmp ret_match
+
+	;MPQ
+	add_mpq:
+
+	cmp remainder,02h
+	jl add_q
+
+	cmp remainder,07h
+	jl add_p
+
+	;M
+	mov bl,4Dh
+	jmp ret_match
+
+	;Q
+	add_q:
+	mov bl,51h
+	jmp ret_match
+
+	;P
+	add_p:
+	mov bl,50h
+	jmp ret_match
+
+	;TC
+	add_tc:
+
+	cmp remainder,06h
+	jl add_c
+
+	;T
+	mov bl,54h
+	jmp ret_match
+
+	;C
+	add_c:
+	mov bl,43h
+	jmp ret_match
+
+	;U
+	add_u:
+	mov bl,55h
+	jmp ret_match
+
+	;ILD
+	add_ild:
+
+	cmp remainder,03h
+	jl add_d
+
+	cmp remainder,04h
+	jl add_l
+
+	;I
+	mov bl,49h
+	jmp ret_match
+
+	;D
+	add_d:
+	mov bl,44h
+	jmp ret_match
+
+	;L
+	add_l:
+	mov bl,4Ch
+	jmp ret_match
+
+	;NR
+	add_nr:
+
+	cmp remainder,02h
+	jl add_r
+
+	;N
+	mov bl,4Eh
+	jmp ret_match
+
+	;R
+	add_r:
+	mov bl,52h
+	jmp ret_match
+
+	;S
+	add_s:
+	mov bl,53h
+	jmp ret_match
+
+	;O
+	add_o:
+	mov bl,4Fh
+	jmp ret_match
+
+	;A
+	add_a:
+	mov bl,41h
+	jmp ret_match
+
+	;E
+	add_e:
+	mov bl,45h
+	jmp ret_match
+
+	;Add ? to the possible_message
+	add_unknown:
+
+	mov bl,3Fh
+
+	ret_match:
+
+	mov units,bl
+	write_text units
+
+	inc cursor
+
+	jmp l_match_letter
+
+	finalize_match:
+	
+	ret
+match_letter endp
 ;------------------------------------------------
 ;Procedure to reset odds array
 reset_odds proc near
@@ -681,6 +948,9 @@ print_num proc near
 
 	   cmp tens,al
 	   je skip_tens
+
+	   mov al,tens
+	   mov remainder,al
 
         ;Print tens
         write_num tens
@@ -1116,7 +1386,7 @@ DesifrarConClaveCompleta PROC NEAR
 RET
 DesifrarConClaveCompleta ENDP
 
-
+;------------------------------------------------
 DesifrarConClaveParcial PROC NEAR
 	MOV ContadorRecorrido, 0
 	For1:
@@ -1126,7 +1396,6 @@ DesifrarConClaveParcial PROC NEAR
 
 		LEA ESI, MensajeEncriptado
 		LEA EDI, Clave
-;------------------------------------------------
 	
 		MOV EAX, 0
 		MOV AL, ContadorRecorrido
