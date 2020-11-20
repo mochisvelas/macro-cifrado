@@ -48,7 +48,7 @@ locate PROTO :DWORD,:DWORD
         CifradoMensaje4		DB "Ingrese Clave: ", 0
         CifradoMensaje5		DB "Su clave es: ", 0
         CifradoMensaje6		DB "Su Mensaje Cifrado es: ", 0
-		;Mensaje (Brenner pon nombre del inciso porfa)
+		;Mensaje Intentar romper cifrado
         out_string			DB "Ingrese el mensaje:",0
 		;Variables
         in_option			DB 0,0
@@ -64,18 +64,15 @@ locate PROTO :DWORD,:DWORD
 		LETRA_AUX			DB 0,0
 		MensajeLength		DB 0
 		ClaveLength			DB 0
-		;Variables (Brenner pon nombre del inciso porfa)
+		;Variables Tratar de romper cifrado
 		tmp 		dd 0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
-		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
+		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
 		odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		in_string 	db 500 dup('$')
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		total_str 	db 0,0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		units  		db 0,0
 		tens   	 	db 0,0
+		;Variables para nueva line y espacio
 		new_space		DB 20h,0
 		new_line 		DB 0Ah,0
 .DATA?
