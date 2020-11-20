@@ -85,8 +85,11 @@ locate PROTO :DWORD,:DWORD
 		LETRA_AUX			DB 0,0
 		MensajeLength		DB 0
 		ClaveLength			DB 0
-		;Variables descrifrado 1
+		;Variables descifrado 1
 		MensajeDescifrado 	DB 100 DUP(?)
+		i 				DB 0,0
+		j 				DB 0,0
+		cursor 			DD 0,0
 		;Variables Tratar de romper cifrado
 		tmp 		dd 0
 		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
@@ -850,6 +853,92 @@ RET
 Cifrar ENDP
 ;------------------------------------------------
 Descifrar proc near
+
+	xor eax,eax
+	xor ebx,ebx
+	xor ecx,ecx
+	xor edx,edx
+	mov cursor,00h
+
+	lea esi,MensajeDescifrado
+	mov edx,esi
+
+	lea esi,MatrizdeCifrado
+	mov cursor,esi
+
+	lea esi,Mensaje
+	lea edi,Clave
+
+	mov i,00h
+	mov j,00h
+
+l_match_letter:
+
+	mov bl,[esi]
+	cmp bl,00h
+	je ret_decipher	
+	
+	l_match_row:
+
+		xor eax,eax
+		mapping i, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+		mov bl,[edi]
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+
+		cmp bl,al
+		je l_match_col
+
+		inc i
+		
+	jmp l_match_row
+
+	l_match_col:
+
+		xor eax,eax
+		mapping i, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+		mov bl,[edi]
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+		mov bl,[esi]
+
+		cmp bl,al
+		je match_letter
+
+		inc j
+
+	jmp l_match_col
+
+	match_letter:
+
+		xor eax,eax
+		mapping 00h, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+
+		mov ecx,esi
+		mov esi,edx
+		mov [esi],al
+		mov esi,ecx
+		inc edx
+
+jmp l_match_letter
+
+	ret_decipher:
+
+	call ResetearClave
 
 	ret
 Descifrar endp
