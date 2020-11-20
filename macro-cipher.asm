@@ -19,6 +19,20 @@ Cambiar_Minusculas MACRO Letter
 	SUB Letter, 32d
 ENDM
 ;------------------------------------------------
+;Map positions in matrix
+mapping macro i, j, rows, columns, size
+	mov al,i
+	mov bl,columns
+	mul bl
+	mov bl,size
+	mul bl
+	mov cl,al
+	mov al,j
+	mov bl,size
+	mul bl
+	add al,cl
+endm
+;------------------------------------------------
 .386
 .model flat,stdcall
 
@@ -42,7 +56,7 @@ locate PROTO :DWORD,:DWORD
         opt6       			DB "6. Salir del programa",0
         out_option			db "Inserte el numero de opcion:",0
 		;Mensajes cifrado forma 1 y 2
-        CifradoMensaje1		DB "El mensaje nop debe exceder dec los 100 caracteres", 0
+        CifradoMensaje1		DB "El mensaje no debe exceder de los 100 caracteres", 0
         CifradoMensaje2		DB "Ingrese Mensaje: ", 0
         CifradoMensaje3		DB "La clave no debe de llevar espacios", 0
         CifradoMensaje4		DB "Ingrese Clave: ", 0
@@ -55,11 +69,10 @@ locate PROTO :DWORD,:DWORD
         DesifradoMensaje4		DB "Ingrese Clave: ", 0
         DesifradoMensaje5		DB "Su clave es: ", 0
         DesifradoMensaje6		DB "Su Mensaje Desifrado es: ", 0
-		;Mensaje (Brenner pon nombre del inciso porfa)
+		;Mensaje Intentar romper cifrado
         out_string			DB "Ingrese el mensaje:",0
 		;Variables
         in_option			DB 0,0
-		new_space			DB 32d
 		;Variables Cifrado forma 1
         MensajeEncriptado	DB 100 DUP(?)
         Mensaje				DB 100 DUP(?)
@@ -72,20 +85,24 @@ locate PROTO :DWORD,:DWORD
 		LETRA_AUX			DB 0,0
 		MensajeLength		DB 0
 		ClaveLength			DB 0
-		;Variables (Brenner pon nombre del inciso porfa)
+		;Variables descifrado 1
+		MensajeDescifrado 	DB 100 DUP(?)
+		i 				DB 0,0
+		j 				DB 0,0
+		cursor 			DD 0,0
+		;Variables Tratar de romper cifrado
 		tmp 		dd 0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
-		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah
+		letters 	db 41h,42h,43h,44h,45h,46h,47h,48h,49h,4Ah,4Bh,4Ch,4Dh,4Eh,4Fh,50h,51h,52h,53h,54h,55h,56h,57h,58h,59h,5Ah,24h
 		odds    	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		in_string 	db 500 dup('$')
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		total_str 	db 0,0
-		;Bro une los espacios o idetenfica por que estan separados para poder llevar mejor control de la cantidad de codigo que llevamos
 		units  		db 0,0
 		tens   	 	db 0,0
+		;Variables para nueva line y espacio
+		new_space		DB 20h,0
+		new_line 		DB 0Ah,0
 .DATA?
-		MatizdeCifrado	dd 676 DUP(?)
+		MatrizdeCifrado	dd 676 DUP(?)
 .const
 
 .code
@@ -240,6 +257,8 @@ NoRellenar:
 		JMP NoRellenar
 	TerminarProceso:
 
+	call ResetearClave
+
 	ret
 proc_cipher endp
 ;------------------------------------------------
@@ -314,6 +333,8 @@ NoRellenar:
 	JMP NoRellenar
 	TerminarProceso:
 
+	call ResetearClave
+
 
 	ret
 proc_cipher_2 endp
@@ -370,7 +391,6 @@ proc_decipher1 proc near
 	CALL TamanoCifrado	
 	CALL TamanoClave
 	
-
 	MOV AL, ClaveLength
 	CMP AL, MensajeLength
 	JNE RellenarClave
@@ -390,6 +410,7 @@ NoRellenar:
 		JMP NoRellenar
 	TerminarProceso:
 
+	TerminarProceso:
 	ret
 proc_decipher1 endp
 ;------------------------------------------------
@@ -541,7 +562,7 @@ print_odds proc near
 	lea edi,tmp
 	mov [edi],ebx
 	mov edi,edx
-	write_text tmp,new_space
+	write_text tmp
 
 	invoke StdOut, addr new_space
 
@@ -565,7 +586,8 @@ print_odds proc near
 	lea edi,tmp
 	mov [edi],ebx
 	mov edi,edx
-	write_text tmp,new_line
+	write_text tmp
+	invoke StdOut, addr new_line
 
 	skip_letter:
 
@@ -679,10 +701,32 @@ clear_screen proc
 
 clear_screen endp
 ;------------------------------------------------
+ResetearClave proc near
 
+	lea esi, Clave
+	xor edx,edx
 
+	l_reset_clave:
+		
+		mov dl,[esi]
+		cmp dl,00h
+		je ret_reset_clave
+
+		mov dl,00h
+
+		mov [esi],dl
+
+		inc esi
+
+	jmp l_reset_clave
+
+	ret_reset_clave:
+
+	ret
+ResetearClave endp
+;------------------------------------------------
 InicializarMatriz PROC NEAR
-	LEA ESI, MatizdeCifrado
+	LEA ESI, MatrizdeCifrado
 	MOV AL, ContadorFila ;AL se usara como contador para escribir la letra en el Vector
 
 	FOR1:
@@ -720,7 +764,7 @@ InicializarMatriz PROC NEAR
 	ENDCICLOS:
 RET
 InicializarMatriz endp
-
+;------------------------------------------------
 TamanoMensaje PROC NEAR
 	LEA ESI, Mensaje
 	ForRecorrido:
@@ -741,6 +785,7 @@ TamanoMensaje PROC NEAR
 	EndFor:
 RET
 TamanoMensaje ENDP
+;------------------------------------------------
 TamanoClave PROC NEAR
 	LEA ESI, Clave
 	ForRecorrer:
@@ -778,6 +823,7 @@ TamanoCifrado PROC NEAR
 RET
 TamanoCifrado ENDP
 
+;------------------------------------------------
 RellenarClaveConClave PROC NEAR
 	LEA ESI, Clave
 	LEA EDI, Clave
@@ -832,7 +878,7 @@ RellenarClaveConClave PROC NEAR
 
 RET
 RellenarClaveConClave ENDP
-
+;------------------------------------------------
 RellenarClaveConMensaje PROC NEAR
 	LEA ESI, Clave
 	LEA EDI, Mensaje
@@ -894,7 +940,7 @@ RellenarClaveConMensaje PROC NEAR
 	EndRellenar:
 RET
 RellenarClaveConMensaje ENDP
-
+;------------------------------------------------
 Cifrar PROC NEAR
 		MOV ContadorRecorrido, 0
 		MOV ContadorEspacios, 0
@@ -966,7 +1012,7 @@ CambiarMinusculas:
 
 CalcularPosicion:
 	MOV ESI, 0
-	LEA ESI, MatizdeCifrado
+	LEA ESI, MatrizdeCifrado
 	MOV DL, 26d
 	MUL DL
 	MOV Posicion, EAX
@@ -981,8 +1027,98 @@ CalcularPosicion:
 Terminar:
 RET
 Cifrar ENDP
+;------------------------------------------------
+Descifrar proc near
 
+	xor eax,eax
+	xor ebx,ebx
+	xor ecx,ecx
+	xor edx,edx
+	mov cursor,00h
 
+	lea esi,MensajeDescifrado
+	mov edx,esi
+
+	lea esi,MatrizdeCifrado
+	mov cursor,esi
+
+	lea esi,Mensaje
+	lea edi,Clave
+
+	mov i,00h
+	mov j,00h
+
+l_match_letter:
+
+	mov bl,[esi]
+	cmp bl,00h
+	je ret_decipher	
+	
+	l_match_row:
+
+		xor eax,eax
+		mapping i, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+		mov bl,[edi]
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+
+		cmp bl,al
+		je l_match_col
+
+		inc i
+		
+	jmp l_match_row
+
+	l_match_col:
+
+		xor eax,eax
+		mapping i, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+		mov bl,[edi]
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+		mov bl,[esi]
+
+		cmp bl,al
+		je match_letter
+
+		inc j
+
+	jmp l_match_col
+
+	match_letter:
+
+		xor eax,eax
+		mapping 00h, j, 1Ah, 1Ah, 01h
+		add cursor,eax
+
+		mov ecx,edi
+		mov edi,cursor
+		mov al,[edi]
+		mov edi,ecx
+
+		mov ecx,esi
+		mov esi,edx
+		mov [esi],al
+		mov esi,ecx
+		inc edx
+
+jmp l_match_letter
+
+	ret_decipher:
+
+	call ResetearClave
+
+	ret
+Descifrar endp
+;------------------------------------------------
 DesifrarConClaveCompleta PROC NEAR
 	MOV ContadorRecorrido, 0
 	For1:
@@ -1050,6 +1186,7 @@ DesifrarConClaveParcial PROC NEAR
 
 		LEA ESI, MensajeEncriptado
 		LEA EDI, Clave
+;------------------------------------------------
 	
 		MOV EAX, 0
 		MOV AL, ContadorRecorrido
